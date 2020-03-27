@@ -14,6 +14,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
 
+import java.util.concurrent.TimeUnit;
+
 import static com.max.security.security.ApplicationUserPermission.COURSE_WRITE;
 import static com.max.security.security.ApplicationUserRole.*;
 
@@ -40,11 +42,23 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .authenticated()
                 .and()
                 .formLogin()
-                .loginPage("/login").permitAll()
-                .defaultSuccessUrl("/courses",true) // where to go after successful login
+                    .loginPage("/login")
+                    .permitAll()
+                    .defaultSuccessUrl("/courses",true) // where to go after successful login
+                    .passwordParameter("password") // if we want to change parameter to custom
+                    .usernameParameter("username") // if we want to change parameter to custom
                 .and()
-                .rememberMe(); // defaults to 2 weeks
-
+                .rememberMe() // defaults to 2 weeks
+                    .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(21))  // will be saved for 21 days
+                    .key("somethingsecure") // md5
+                    .rememberMeParameter("remember-me") // if we want to change parameter to custom
+                .and()
+                .logout()
+                    .logoutUrl("/logout")
+                    .clearAuthentication(true)
+                    .invalidateHttpSession(true)
+                    .deleteCookies("JSESSIONID","remember-me")
+                    .logoutSuccessUrl("/login");
     }
 
     @Override
